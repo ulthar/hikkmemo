@@ -108,12 +108,14 @@ module Hikkmemo
         '%t' => time,  '%k' => kind,
         '%b' => board, '%m' => msg
       }
-      if colored
-        case @theme
-          when :solid then text.color(@colors)
-          when :zebra then text.color(@colors[@aux_cnt = (@aux_cnt + 1) % @colors.size])
-          else text
-        end
+      colored ? colorize(text) : text
+    end
+
+    def colorize(text)
+      case @theme
+        when :solid then text.color(@colors)
+        when :zebra then text.color(@colors[@aux_cnt = (@aux_cnt + 1) % @colors.size])
+        else text
       end
     end
 
