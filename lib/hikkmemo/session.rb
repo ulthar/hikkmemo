@@ -178,7 +178,7 @@ module Hikkmemo
     end
 
     def cmd_context(board)
-      with_board_worker board { @board = board }
+      with_board_worker (board) { @board = board }
     end
 
     def cmd_post(id, board)
