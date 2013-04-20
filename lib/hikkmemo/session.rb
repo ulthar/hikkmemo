@@ -27,6 +27,7 @@ module Hikkmemo
       @history = RingBuffer.new(opts[:history_size])
       @aux_cnt = 0
       @workers = {}
+      @cmds    = {}
       @board   = opts[:boards].keys[0].to_s
 
       cl = ->(k,b,m) { print "\r#{log_msg(k,b,m)}\n#{prompt}"}
@@ -62,7 +63,7 @@ module Hikkmemo
         DateTime :date
       end
 
-      worker = @workers[board] = Worker.new(db, board.to_sym, reader)
+      worker = @workers[board] = Worker.new(db, reader)
       worker.on_add_thread {|t| log('+', board, "[#{t[:id]}]") }
       worker.on_add_post do |p|
         log('+', board, "#{p[:id]}[#{p[:thread]}] - '#{p[:message][0..@msg_sz].tr("\n",'')}...'")
@@ -97,9 +98,30 @@ module Hikkmemo
         when 'posts'   then cmd_posts   cmd[1].to_i, cmd[2] || @board
         when 'tposts'  then cmd_tposts  cmd[1].to_i, cmd[2].to_i, cmd[3] || @board
         when 'thread'  then cmd_thread  cmd[1].to_i, cmd[2] || @board
+        else
+          fn = @cmds[cmd[0]]
+          fn && fn.(cmd.drop(1))
         end
         puts ''
       end
+    end
+
+    def notice(msg)
+      print "\r#{time} ~ #{msg}\n#{prompt}".color(:cyan)
+    end
+
+    def hook(board = nil, &block)
+      if board
+        @workers[board.to_s].on_add_post(&block)
+      else
+        @workers.each do |b,w|
+          w.on_add_post {|p| block.call(p,b) }
+        end
+      end
+    end
+
+    def cmd(name, &block)
+      @cmds[name] = block
     end
 
     private
@@ -133,10 +155,6 @@ module Hikkmemo
       @prompt.gsub('%b', @board).color(@prompt_color)
     end
 
-    def hook(board, &block)
-      @workers[board].on_add_post(block)
-    end
-
     def download_image(board, src)
       path = "#{@path}/#{board}/#{File.basename(src)}"
       begin
@@ -160,25 +178,25 @@ module Hikkmemo
     end
 
     def cmd_context(board)
-      with_board_worker(board) { @board = board }
+      with_board_worker board { @board = board }
     end
 
     def cmd_post(id, board)
-      with_board_worker(board) do |wr|
+      with_board_worker board do |wr|
         post = wr.db[:posts][:id => id]
         post ? print_post(post) : puts('post not found')
       end
     end
 
     def cmd_posts(n, board)
-      with_board_worker(board) do |wr|
+      with_board_worker board do |wr|
         wr.db[:posts].order(Sequel.desc(:date)).limit(n)
           .all.reverse.each {|p| print_post(p) }
       end
     end
 
     def cmd_tposts(n, tid, board)
-      with_board_worker(board) do |wr|
+      with_board_worker board do |wr|
         wr.db[:posts].where(:thread => tid)
           .order(Sequel.desc(:date)).limit(n)
           .all.reverse.each {|p| print_post(p) }
@@ -186,7 +204,7 @@ module Hikkmemo
     end
 
     def cmd_thread(tid, board)
-      with_board_worker(board) do |wr|
+      with_board_worker board do |wr|
         if_nil wr.db[:threads][:id => tid] { puts 'thread not found'; return }
         wr.db[:posts].where(:thread => tid).each {|p| print_post(p) }
       end

@@ -2,9 +2,11 @@ require 'hikkmemo/session'
 require 'hikkmemo/readers'
 
 module Hikkmemo
-  def run(*args)
+  module_function
+  def run(*args, &block)
     Thread.abort_on_exception = true
-    Session.new(*args).interact
+    s = Session.new(*args)
+    s.instance_eval(&block)
+    s.interact
   end
-  module_function :run
 end

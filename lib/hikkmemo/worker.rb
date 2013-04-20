@@ -3,8 +3,8 @@ module Hikkmemo
     attr_reader   :db
     attr_accessor :timeout, :thread
 
-    def initialize(db, board, reader)
-      @db, @board, @reader = db, board, reader
+    def initialize(db, reader)
+      @db, @reader = db, reader
       @on_add_thread = []
       @on_add_post   = []
       @timeout       = 30
@@ -22,7 +22,7 @@ module Hikkmemo
     def on_add_thread(&p) @on_add_thread += [p] end
 
     def run
-      @thread ||= Thread.new {
+      @thread ||= Thread.new do
         loop do
           @reader.fringe.each do |tid,pid|
             thread = @db[:threads][:id => tid]
@@ -43,7 +43,7 @@ module Hikkmemo
           end
           sleep @timeout
         end
-      }
+      end
     end
   end
 end
