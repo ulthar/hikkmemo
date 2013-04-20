@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'date'
-require_relative 'util'
+require 'hikkmemo/reader'
+require 'hikkmemo/util'
 
 module Hikkmemo
   module Readers

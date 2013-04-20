@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 module Hikkmemo
   class Reader
     attr_reader :url

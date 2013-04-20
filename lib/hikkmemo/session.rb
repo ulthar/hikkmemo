@@ -1,3 +1,12 @@
+require 'fileutils'
+require 'nokogiri'
+require 'open-uri'
+require 'readline'
+require 'rainbow'
+require 'sequel'
+require 'hikkmemo/ring_buffer'
+require 'hikkmemo/worker'
+
 module Hikkmemo
   class Session
     attr_reader :path, :workers, :history
@@ -159,14 +168,14 @@ module Hikkmemo
 
     def cmd_posts(n, board)
       @workers[board].db[:posts]
-        .order(Sequel.desc(:date))
-        .limit(n).each {|p| print_post(p) }
+        .order(Sequel.desc(:date)).limit(n).all
+        .reverse.each {|p| print_post(p) }
     end
 
     def cmd_tposts(n, tid, board)
       @workers[board].db[:posts].where(:thread => tid)
-        .order(Sequel.desc(:date))
-        .limit(n).each {|p| print_post(p) }
+        .order(Sequel.desc(:date)).limit(n).all
+        .reverse.each {|p| print_post(p) }
     end
 
     def cmd_thread(id, board)
