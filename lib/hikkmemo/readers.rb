@@ -43,7 +43,10 @@ module Hikkmemo
         @thread_url   = ->(i) { "http://2ch.hk#{section}res/#{i}.html" }
         @thread_id    = ->(t) { t['id'][7..-1].to_i }
         @post_id      = ->(p) { p['id'][5..-1].to_i }
-        @post_author  = ->(p) { p.css('span.name').text }
+        @post_author  = ->(p) {
+          trip = p.css('span.postertrip')[0]
+          p.css('span.name').text + (trip && trip.text || '')
+        }
         @post_subject = ->(p) { p.css('span.subject').text }
         @post_date    = ->(p) {
           date_str = p.css('span.posttime').text.strip
