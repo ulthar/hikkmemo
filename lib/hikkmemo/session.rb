@@ -6,6 +6,7 @@ require 'rainbow'
 require 'sequel'
 require 'hikkmemo/ring_buffer'
 require 'hikkmemo/worker'
+require 'hikkmemo/util'
 
 module Hikkmemo
   class Session
@@ -153,35 +154,42 @@ module Hikkmemo
       puts post[:message]
     end
 
+    def with_board_worker(board, &block)
+      worker = @workers[board]
+      worker ? block.call(worker) : puts('unknown board')
+    end
+
     def cmd_context(board)
-      if @workers.keys.include? board
-        @board = board
-      else puts('unknown board') end
+      with_board_worker(board) { @board = board }
     end
 
     def cmd_post(id, board)
-      post = @workers[board].db[:posts][:id => id]
-      if post
-        print_post(post)
-      else puts('post not found') end
+      with_board_worker(board) do |wr|
+        post = wr.db[:posts][:id => id]
+        post ? print_post(post) : puts('post not found')
+      end
     end
 
     def cmd_posts(n, board)
-      @workers[board].db[:posts]
-        .order(Sequel.desc(:date)).limit(n).all
-        .reverse.each {|p| print_post(p) }
+      with_board_worker(board) do |wr|
+        wr.db[:posts].order(Sequel.desc(:date)).limit(n)
+          .all.reverse.each {|p| print_post(p) }
+      end
     end
 
     def cmd_tposts(n, tid, board)
-      @workers[board].db[:posts].where(:thread => tid)
-        .order(Sequel.desc(:date)).limit(n).all
-        .reverse.each {|p| print_post(p) }
+      with_board_worker(board) do |wr|
+        wr.db[:posts].where(:thread => tid)
+          .order(Sequel.desc(:date)).limit(n)
+          .all.reverse.each {|p| print_post(p) }
+      end
     end
 
-    def cmd_thread(id, board)
-      db = @workers[board].db
-      (puts 'not found'; return) unless db[:threads][:id => id]
-      db[:posts].where(:thread => id).each {|p| print_post(p) }
+    def cmd_thread(tid, board)
+      with_board_worker(board) do |wr|
+        if_nil wr.db[:threads][:id => tid] { puts 'thread not found'; return }
+        wr.db[:posts].where(:thread => tid).each {|p| print_post(p) }
+      end
     end
   end
 end

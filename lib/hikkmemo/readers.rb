@@ -5,6 +5,8 @@ require 'hikkmemo/util'
 
 module Hikkmemo
   module Readers
+    module_function
+
     def nullchan(section)
       Reader.new('http://0chan.hk' + section) do
         @threads      = ->(d) { d.css('div[id^="thread"]') }
@@ -33,7 +35,6 @@ module Hikkmemo
         }
       end
     end
-    module_function :nullchan
 
     def dvach_hk(section)
       Reader.new('http://2ch.hk' + section) do
@@ -63,6 +64,5 @@ module Hikkmemo
         }
       end
     end
-    module_function :dvach_hk
   end
 end
