@@ -14,8 +14,11 @@ module Hikkmemo
         @thread_url   = ->(i) { "http://0chan.hk#{section}res/#{i}.html" }
         @thread_id    = ->(t) { t['id'].tr('^0-9', '').to_i }
         @post_id      = ->(p) { p.css('span[class^="dnb"]')[0]['class'].tr('^0-9', '').to_i }
-        @post_author  = ->(p) { p.css('span.postername').text }
         @post_subject = ->(p) { p.css('span.filetitle').text }
+        @post_author  = ->(p) {
+          trip = p.css('span.postertrip')[0]
+          p.css('span.postername').text + (trip && trip.text || '')
+        }
         @post_date    = ->(p) {
           date_str = p.css('label').children.last.text.strip
           DateTime.strptime(Util.delocalize_ru_date(date_str), '%a %Y %b %e %H:%M:%S')
@@ -43,11 +46,11 @@ module Hikkmemo
         @thread_url   = ->(i) { "http://2ch.hk#{section}res/#{i}.html" }
         @thread_id    = ->(t) { t['id'][7..-1].to_i }
         @post_id      = ->(p) { p['id'][5..-1].to_i }
+        @post_subject = ->(p) { p.css('span.subject').text }
         @post_author  = ->(p) {
           trip = p.css('span.postertrip')[0]
           p.css('span.name').text + (trip && trip.text || '')
         }
-        @post_subject = ->(p) { p.css('span.subject').text }
         @post_date    = ->(p) {
           date_str = p.css('span.posttime').text.strip
           DateTime.strptime(Util.delocalize_ru_date(date_str), '%a %e %b %Y %H:%M:%S')
