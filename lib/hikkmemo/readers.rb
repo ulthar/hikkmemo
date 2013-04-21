@@ -89,7 +89,7 @@ module Hikkmemo
         }
         @post_message = ->(p) {
           msg = p.css('div.message')
-          msg.children.each {|c| c.replace(c.text + "\n") if ['br', 'span'].include?(c.name) }
+          msg.children.each {|c| c.replace("\n" + c.text.delete("\n")) if c.name == 'blockquote' }
           msg.text.strip
         }
         @post_image = ->(p) {
