@@ -93,8 +93,8 @@ module Hikkmemo
           msg.text.strip
         }
         @post_image = ->(p) {
-          imgs = p.css('a[href^="/src"]').to_a.uniq
-          imgs.size > 0 && imgs.map {|img| "http://dobrochan.ru#{img['href']}" }.join(',')
+          imgs = p.css('a[href^="/src"]').to_a.map{|a| a['href'] }.uniq
+          imgs.size > 0 && imgs.map {|img| "http://dobrochan.ru#{img}" }.join(',')
         }
         @post_embed = ->(p) {
           # vid = p.css('embed')[0]
@@ -103,5 +103,7 @@ module Hikkmemo
         }
       end
     end
+
+
   end
 end
