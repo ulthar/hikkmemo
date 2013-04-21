@@ -32,7 +32,7 @@ module Hikkmemo
           img = p.css('img')[0]
           img && "http://0chan.hk#{section}src/#{File.basename(img['src']).to_i}#{File.extname(img['src'])}"
         }
-        @post_video = ->(p) {
+        @post_embed = ->(p) {
           vid = p.css('embed')[0]
           vid && vid['src']
         }
@@ -64,7 +64,7 @@ module Hikkmemo
           img = p.css('span[id^="exlink"] a')[0]
           img && "http://2ch.hk#{img['href']}"
         }
-        @post_video = ->(p) {
+        @post_embed = ->(p) {
           vid = p.css('embed')[0]
           vid && vid['src']
         }
@@ -96,7 +96,7 @@ module Hikkmemo
           imgs = p.css('a[href^="/src"]').to_a.uniq
           imgs.size > 0 && imgs.map {|img| "http://dobrochan.ru#{img['href']}" }.join(',')
         }
-        @post_video = ->(p) {
+        @post_embed = ->(p) {
           # vid = p.css('embed')[0]
           # vid && vid['src']
           nil

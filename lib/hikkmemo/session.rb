@@ -54,7 +54,7 @@ module Hikkmemo
         String :subject
         String :message
         String :image
-        String :video
+        String :embed
       end
 
       db.create_table? :threads do

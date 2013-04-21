@@ -38,7 +38,7 @@ module Hikkmemo
         :subject => @post_subject.(node),
         :message => @post_message.(node),
         :image   => @post_image.(node),
-        :video   => @post_video.(node)
+        :embed   => @post_embed.(node)
       }
     end
   end
