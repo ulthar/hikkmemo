@@ -70,5 +70,38 @@ module Hikkmemo
         }
       end
     end
+
+    def dobrochan(section)
+      Reader.new('http://dobrochan.ru' + section) do
+        @threads      = ->(d) { d.css('div.thread') }
+        @posts        = ->(d) { d.css('div.oppost') + d.css('table.post') }
+        @thread_url   = ->(i) { "http://dobrochan.ru#{section}res/#{i}.xhtml" }
+        @thread_id    = ->(t) { t['id'][7..-1].to_i }
+        @post_id      = ->(p) { p['id'][5..-1].to_i }
+        @post_subject = ->(p) { p.css('span.replytitle').text }
+        @post_author  = ->(p) {
+          trip = p.css('span.postertrip')[0]
+          p.css('span.postername').text + (trip && trip.text || '')
+        }
+        @post_date    = ->(p) {
+          date_str = p.css('label').children.last.text.strip
+          DateTime.strptime(date_str, '%e %B %Y (%a) %H:%M')
+        }
+        @post_message = ->(p) {
+          msg = p.css('div.message')
+          msg.children.each {|c| c.replace(c.text + "\n") if ['br', 'span'].include?(c.name) }
+          msg.text.strip
+        }
+        @post_image = ->(p) {
+          imgs = p.css('a[href^="/src"]').to_a.uniq
+          imgs.size > 0 && imgs.map {|img| "http://dobrochan.ru#{img['href']}" }.join(',')
+        }
+        @post_video = ->(p) {
+          # vid = p.css('embed')[0]
+          # vid && vid['src']
+          nil
+        }
+      end
+    end
   end
 end
