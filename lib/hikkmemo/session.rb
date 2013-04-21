@@ -67,7 +67,7 @@ module Hikkmemo
       worker.on_add_thread {|t| log('+', board, "[#{t[:id]}]") }
       worker.on_add_post do |p|
         log('+', board, "#{p[:id]}[#{p[:thread]}] - '#{p[:message][0..@msg_sz].tr("\n",'')}...'")
-        (img = p[:image]) && download_image(board, img)
+        (img = p[:image]) && img.split(',').each {|img| download_image(board, img) }
       end
       worker.run
     end
@@ -112,7 +112,7 @@ module Hikkmemo
 
     def hook(board = nil, &block)
       if board
-        @workers[board.to_s].on_add_post(&block)
+        with_board_worker (board.to_s) {|w| w.on_add_post(&block) }
       else
         @workers.each do |b,w|
           w.on_add_post {|p| block.call(p,b) }
