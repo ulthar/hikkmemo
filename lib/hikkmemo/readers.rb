@@ -19,7 +19,7 @@ module Hikkmemo
           trip = p.css('span.postertrip')[0]
           p.css('span.postername').text + (trip && trip.text || '')
         }
-        @post_date    = ->(p) {
+        @post_date = ->(p) {
           date_str = p.css('label').children.last.text.strip
           DateTime.strptime(Util.delocalize_ru_date(date_str), '%a %Y %b %e %H:%M:%S')
         }
@@ -51,7 +51,7 @@ module Hikkmemo
           trip = p.css('span.postertrip')[0]
           p.css('span.name').text + (trip && trip.text || '')
         }
-        @post_date    = ->(p) {
+        @post_date = ->(p) {
           date_str = p.css('span.posttime').text.strip
           DateTime.strptime(Util.delocalize_ru_date(date_str), '%a %e %b %Y %H:%M:%S')
         }
@@ -83,7 +83,7 @@ module Hikkmemo
           trip = p.css('span.postertrip')[0]
           p.css('span.postername').text + (trip && trip.text || '')
         }
-        @post_date    = ->(p) {
+        @post_date = ->(p) {
           date_str = p.css('label').children.last.text.strip
           DateTime.strptime(date_str, '%e %B %Y (%a) %H:%M')
         }
