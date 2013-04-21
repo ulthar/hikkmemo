@@ -56,8 +56,8 @@ module Hikkmemo
           DateTime.strptime(Util.delocalize_ru_date(date_str), '%a %e %b %Y %H:%M:%S')
         }
         @post_message = ->(p) {
-          msg = p.css('blockquote.postMessage')
-          msg.children.each {|c| c.replace(c.text + "\n") if ['br', 'span'].include?(c.name) }
+          msg = p.css('blockquote.postMessage p')
+          msg.children.each {|c| c.replace(c.text + "\n") if ['br'].include?(c.name) }
           msg.text.strip
         }
         @post_image = ->(p) {
