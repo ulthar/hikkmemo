@@ -1,14 +1,13 @@
-Установка под прыщами:
-
+```
   $ sudo apt-get install sqlite3 libsqlite3-dev
   $ sudo gem install hikkmemo
+```
 
-Исполняемый конфиг:
-
+```
   $ sudo gedit /usr/local/bin/hikkmemo
+```
 
-Пример содержимого:
-
+```ruby
   #!/usr/bin/env ruby
   # -*- coding: utf-8 -*-
   require 'hikkmemo'
@@ -52,7 +51,8 @@
       puts @workers
     end
   end
+```
 
-Запуск:
-
+```
   $ hikkmemo
+```
