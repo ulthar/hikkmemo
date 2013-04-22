@@ -2,6 +2,7 @@
 require 'date'
 require 'hikkmemo/reader'
 require 'hikkmemo/util'
+require "unicode_utils/titlecase"
 
 module Hikkmemo
   module Readers
@@ -96,14 +97,53 @@ module Hikkmemo
           imgs = p.css('a[href^="/src"]').to_a.map{|a| a['href'] }.uniq
           imgs.size > 0 && imgs.map {|img| "http://dobrochan.ru#{img}" }.join(',')
         }
-        @post_embed = ->(p) {
-          # vid = p.css('embed')[0]
-          # vid && vid['src']
-          nil
-        }
+        @post_embed = ->(_) { nil }
       end
     end
 
-
+    def iichan(section)
+      Reader.new('http://iichan.hk' + section) do
+        @threads = ->(d) { d.css('div[id^="thread"]') }
+        @posts   = ->(d) {
+          d.css('span.filetitle').attr('class', 'replytitle')
+          d.css('span.commentpostername').attr('class', 'postername')
+          d = d.at_css('div[id^="thread"]') if d.name == 'document'
+          p = d.at_css('table')
+          r = p && (d.children.index(p) - 1) || -1
+          td = d.document.create_element 'td', {
+            :class => 'reply',
+            :id    => "reply#{d['id'][7..-1].to_i}"
+          }
+          td.children = d.children[0..r].unlink
+          if d.children.empty? then d.add_child(td) else d.children.before(td) end
+          d.css('td.reply')
+        }
+        @thread_url   = ->(i) { "http://iichan.hk#{section}res/#{i}.html" }
+        @thread_id    = ->(t) { t['id'][7..-1].to_i }
+        @post_id      = ->(p) { p['id'][5..-1].to_i }
+        @post_subject = ->(p) { p.css('span.replytitle').text }
+        @post_author  = ->(p) {
+          trip = p.css('span.postertrip')[0]
+          p.css('span.postername').text + (trip && trip.text || '')
+        }
+        @post_date = ->(p) {
+          d = p.css('label')[0].children.last.text.strip.split(' ').drop(1)
+          d[1] = 'Май' if d[1] == 'мая'
+          d[1] = UnicodeUtils.titlecase(d[1][0..2])
+          date_str = Util.delocalize_ru_date(d.join(' '))
+          DateTime.strptime(date_str, '%e %b %Y %H:%M:%S')
+        }
+        @post_message = ->(p) {
+          msg = p.at_css('blockquote')
+          msg.traverse {|c| c.replace(c.text + "\n") if ['p', 'br'].include?(c.name) }
+          msg.text.strip
+        }
+        @post_image = ->(p) {
+          img = p.at_css('span.filesize a[target="_blank"]')
+          img && "http://iichan.hk#{img['href']}"
+        }
+        @post_embed = ->(_) { nil }
+      end
+    end
   end
 end
